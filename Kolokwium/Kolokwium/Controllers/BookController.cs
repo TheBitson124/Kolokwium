@@ -63,6 +63,6 @@ public class BookController:ControllerBase
         {
             return NotFound("Book not created, payment required");
         }
-        return Created(Request.Path.Value ?? $"api/books/{idBook}/genres", returnBookDto);
+        return Created($"api/books/{idBook}/genres", returnBookDto);
     }
 }
