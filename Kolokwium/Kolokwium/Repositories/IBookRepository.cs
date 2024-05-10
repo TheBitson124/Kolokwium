@@ -2,5 +2,6 @@
 
 public interface IBookRepository
 {
-    Task<bool> DoesBookExist(int id);
+    Task<string> GetBookTitle(int id);
+    Task<List<string>> GetBookGenres(int id);
 }

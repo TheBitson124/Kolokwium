@@ -1,4 +1,5 @@
-﻿using Kolokwium.Repositories;
+﻿using Kolokwium.Models;
+using Kolokwium.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Kolokwium.Controllers;
@@ -13,13 +14,23 @@ public class BookController:ControllerBase
         _bookRepository = bookRepository;
     }
     [HttpGet]
-    [Route("api/books/{id:int}/genres")]
-    public async Task<ActionResult> GetBookGenres()
+    [Route("{id:int}/genres")]
+    public async Task<ActionResult<ReturnBookDTO>> GetBookGenres(int id)
     {
-        if (! await _bookRepository.DoesBookExist(id))
+        var title = await _bookRepository.GetBookTitle(id);
+        if (title.Equals(""))
         {
-            
+            return NotFound($"Book id {id} not found");
         }
-        return NotFound();
+
+        ReturnBookDTO returnBookDto = new ReturnBookDTO()
+        {
+            id = id,
+            title = title,
+            genres = await _bookRepository.GetBookGenres(id)
+        };
+        return returnBookDto;
     }
+    [HttpPost]
+    [Route()]
 }

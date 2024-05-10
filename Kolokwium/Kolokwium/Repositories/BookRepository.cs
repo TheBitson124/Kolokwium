@@ -10,9 +10,9 @@ public class BookRepository:IBookRepository
     {
         _configuration = configuration;
     }
-    public async Task<bool> DoesBookExist(int id)
+    public async Task<string> GetBookTitle(int id)
     {
-        var query = "SELECT 1 FROM books WHERE PK = @id;";
+        var query = "SELECT Title FROM books WHERE PK = @id;";
 
         await using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
         await using SqlCommand command = new SqlCommand();
@@ -24,7 +24,33 @@ public class BookRepository:IBookRepository
         await connection.OpenAsync();
 
         var res = await command.ExecuteScalarAsync();
+        if (res is null)
+        {
+            return "";
+        }
 
-        return res is not null;
+        return Convert.ToString(res);
+    }
+
+    public async Task<List<string>> GetBookGenres(int id)
+    {
+        var query = "SELECT FK_genre FROM books_genres WHERE FK_book = @id;";
+
+        await using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
+        await using SqlCommand command = new SqlCommand();
+
+        command.Connection = connection;
+        command.CommandText = query;
+        command.Parameters.AddWithValue("@id", id);
+        await connection.OpenAsync();
+        var reader = await command.ExecuteReaderAsync();
+        List<string> genres = new List<string>();   
+        var genreOrdinal = reader.GetOrdinal("FK_genre");
+        while (await reader.ReadAsync())
+        {
+            genres.Add(reader.GetString(genreOrdinal));
+        }
+
+        return genres;
     }
 }
