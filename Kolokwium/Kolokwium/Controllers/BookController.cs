@@ -16,6 +16,10 @@ public class BookController:ControllerBase
     [Route("api/books/{id:int}/genres")]
     public async Task<ActionResult> GetBookGenres()
     {
+        if (! await _bookRepository.DoesBookExist(id))
+        {
+            
+        }
         return NotFound();
     }
 }

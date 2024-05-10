@@ -1,6 +1,6 @@
 ﻿namespace Kolokwium.Repositories;
 
-public class IBookRepository
+public interface IBookRepository
 {
-    
+    Task<bool> DoesBookExist(int id);
 }
