@@ -1,4 +1,5 @@
-﻿using Kolokwium.Models;
+﻿using System.Transactions;
+using Kolokwium.Models;
 using Kolokwium.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,6 +32,33 @@ public class BookController:ControllerBase
         };
         return returnBookDto;
     }
+
     [HttpPost]
-    [Route()]
+    [Route("")]
+    public async Task<ActionResult<ReturnBookDTO>> PostBook(AddBook data)
+    {
+        ReturnBookDTO returnBookDto = new ReturnBookDTO();
+        foreach (var genreId in data.genres)
+        {
+            var g = await _bookRepository.GetGenre(genreId);
+            if (g == "")
+            {
+                return NotFound($"Genre Id {genreId} not found");
+            }
+            returnBookDto.genres.Add(g);
+        }
+        returnBookDto.title = data.title;
+        var idBook = -1;
+        using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
+        {
+            idBook = await _bookRepository.PostBook(data.title,data.genres);
+            returnBookDto.id = idBook;
+            scope.Complete();
+        }
+        if (idBook == -1)
+        {
+            return NotFound("Book not created, payment required");
+        }
+        return Created(Request.Path.Value ?? $"api/books/{idBook}/genres", returnBookDto);
+    }
 }

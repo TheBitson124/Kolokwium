@@ -3,6 +3,6 @@
 public class AddBook
 {
     public  string title{ get; set; }
-    public List<string> genres { get; set; } = new List<string>();
+    public List<int> genres { get; set; } = new List<int>();
 
 }
