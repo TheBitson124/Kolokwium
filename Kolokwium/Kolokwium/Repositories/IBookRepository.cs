@@ -9,4 +9,5 @@ public interface IBookRepository
     Task<List<string>> GetBookGenres(int id);
     Task<int> PostBook(string title,List<int> genres);
     Task<string> GetGenre(int id);
+    Task PostBookGenre(int bookId, int genreId);
 }

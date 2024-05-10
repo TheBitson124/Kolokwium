@@ -16,7 +16,7 @@ public class BookController:ControllerBase
     }
     [HttpGet]
     [Route("{id:int}/genres")]
-    public async Task<ActionResult<ReturnBookDTO>> GetBookGenres(int id)
+    public async Task<IActionResult> GetBookGenres(int id)
     {
         var title = await _bookRepository.GetBookTitle(id);
         if (title.Equals(""))
@@ -30,12 +30,12 @@ public class BookController:ControllerBase
             title = title,
             genres = await _bookRepository.GetBookGenres(id)
         };
-        return returnBookDto;
+        return Ok(returnBookDto);
     }
 
     [HttpPost]
     [Route("")]
-    public async Task<ActionResult<ReturnBookDTO>> PostBook(AddBook data)
+    public async Task<IActionResult> PostBook(AddBook data)
     {
         ReturnBookDTO returnBookDto = new ReturnBookDTO();
         foreach (var genreId in data.genres)
@@ -53,6 +53,10 @@ public class BookController:ControllerBase
         {
             idBook = await _bookRepository.PostBook(data.title,data.genres);
             returnBookDto.id = idBook;
+            foreach (var g in data.genres)
+            {
+                await _bookRepository.PostBookGenre(returnBookDto.id, g);
+            }
             scope.Complete();
         }
         if (idBook == -1)

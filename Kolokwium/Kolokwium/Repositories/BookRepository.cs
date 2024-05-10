@@ -55,7 +55,7 @@ public class BookRepository:IBookRepository
 
     public async Task<List<string>> GetBookGenres(int id)
     {
-        var query = "SELECT FK_genre FROM books_genres WHERE FK_book = @id;";
+        var query = "SELECT genres.name AS name FROM books_genres JOIN genres on genres.PK = books_genres.FK_genre WHERE FK_book = @id;";
 
         await using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
         await using SqlCommand command = new SqlCommand();
@@ -66,7 +66,8 @@ public class BookRepository:IBookRepository
         await connection.OpenAsync();
         var reader = await command.ExecuteReaderAsync();
         List<string> genres = new List<string>();   
-        var genreOrdinal = reader.GetOrdinal("FK_genre");
+        var genreOrdinal = reader.GetOrdinal("name");
+        var gid = -1;
         while (await reader.ReadAsync())
         {
             genres.Add(reader.GetString(genreOrdinal));
@@ -88,29 +89,14 @@ public class BookRepository:IBookRepository
 
         await connection.OpenAsync();
         var res = await command.ExecuteScalarAsync();
-        if (res is null){
-            throw new Exception("1");
-        }
-
         var id = Convert.ToInt32(res);
-        foreach (var genre in genres)
-        {
-            query = "INSERT INTO books_genres VALUES (@FK_book, @FK_genre)";
-            command.Parameters.AddWithValue("@FK_book", id);
-            command.Parameters.AddWithValue("@FK_genre", genre);
-            res = await command.ExecuteScalarAsync();
-            if (res is null){
-                throw new Exception("2");
-            }
-        }
 
         return id;
     }
-
-
+    
     public async Task<string> GetGenre(int genreId)
     {
-        var query = "SELECT nam FROM genres WHERE PK = @id;";
+        var query = "SELECT name FROM genres WHERE PK = @id;";
 
         await using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
         await using SqlCommand command = new SqlCommand();
@@ -127,5 +113,20 @@ public class BookRepository:IBookRepository
             return "";
         }
         return Convert.ToString(res);
+    }
+
+    public async Task PostBookGenre(int bookId, int genreId)
+    {
+        var query = "INSERT INTO books_genres VALUES (@FK_book, @FK_genre)";
+        await using SqlConnection connection = new SqlConnection(_configuration.GetConnectionString("Default"));
+        await using SqlCommand command = new SqlCommand();
+
+        command.Connection = connection;
+        command.CommandText = query;
+        command.Parameters.AddWithValue("@FK_book", bookId);
+        command.Parameters.AddWithValue("@FK_genre", genreId);
+        await connection.OpenAsync();
+        var res = await command.ExecuteScalarAsync();
+        
     }
 }
